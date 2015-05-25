@@ -4,11 +4,14 @@ import com.meuuh.dev.chatapp2.models.IRoomModel;
 import com.meuuh.dev.chatapp2.models.RoomModel;
 import com.meuuh.dev.chatapp2.models.com.parse.Message;
 import com.meuuh.dev.chatapp2.models.com.parse.Room;
+import com.meuuh.dev.chatapp2.navigation.Navigator;
 import com.meuuh.dev.chatapp2.views.IRoomView;
 import com.parse.ParseUser;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 /**
  * Created by Edouard on 22/05/2015.
@@ -17,6 +20,7 @@ public class RoomPresenter {
     final private RoomPresenter self = this;
     private IRoomView roomView;
     private IRoomModel roomModel;
+
 
     public RoomPresenter(IRoomView view) {
         this.roomView = view;

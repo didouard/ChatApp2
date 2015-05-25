@@ -6,8 +6,10 @@ import com.meuuh.dev.chatapp2.models.RoomListModel;
 import com.meuuh.dev.chatapp2.models.RoomModel;
 import com.meuuh.dev.chatapp2.models.com.parse.Message;
 import com.meuuh.dev.chatapp2.models.com.parse.Room;
+import com.meuuh.dev.chatapp2.views.INavigationDrawerView;
 import com.meuuh.dev.chatapp2.views.IRoomListView;
 import com.meuuh.dev.chatapp2.views.IRoomView;
+import com.meuuh.dev.chatapp2.views.NavigationDrawerFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,21 +19,31 @@ import java.util.List;
  */
 public class RoomListPresenter {
     private static RoomListPresenter self = null;
-    private IRoomListView roomListView;
-    private IRoomListModel roomListModel;
+
     private List<Room> rooms;
 
-    public RoomListPresenter(IRoomListView view) {
-        this.roomListView = view;
+    private IRoomListView roomListView = null;
+    private INavigationDrawerView navigationDrawerView = null;
+
+    private IRoomListModel roomListModel;
+
+    public RoomListPresenter() {
         roomListModel = new RoomListModel();
     }
 
-    public static RoomListPresenter getInstance(IRoomListView view) {
+    public static RoomListPresenter getInstance() {
         if (self == null) {
-            if (view == null) return null;
-            self = new RoomListPresenter(view);
+            self = new RoomListPresenter();
         }
         return self;
+    }
+
+    public void setRoomListView(IRoomListView roomListView) {
+        this.roomListView = roomListView;
+    }
+
+    public void setNavigationDrawerView(INavigationDrawerView navigationDrawerView) {
+        this.navigationDrawerView = navigationDrawerView;
     }
 
     public void createRoom(String name) {
@@ -42,16 +54,14 @@ public class RoomListPresenter {
         return rooms;
     }
 
-    public interface RoomListPresenterCallback {
-        void done(List<Room> rooms);
-    }
 
-    public void refreshRoom(final RoomListPresenterCallback callback) {
+    public void refreshRooms() {
         roomListModel.fetchRooms(new RoomListModel.RoomListModelCallback() {
             @Override
             public void done(List<Room> rooms) {
                 self.rooms = rooms;
-                callback.done(rooms);
+                if (roomListView != null) roomListView.refreshRooms(rooms);
+                if (navigationDrawerView != null) navigationDrawerView.refreshRooms(rooms);
             }
         });
     }

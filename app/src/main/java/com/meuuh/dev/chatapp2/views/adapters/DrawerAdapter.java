@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.meuuh.dev.chatapp2.R;
 import com.meuuh.dev.chatapp2.models.com.parse.Room;
+import com.meuuh.dev.chatapp2.navigation.Navigator;
 import com.meuuh.dev.chatapp2.presenters.RoomListPresenter;
 
 import java.util.List;
@@ -19,41 +20,38 @@ import java.util.List;
  */
 public class DrawerAdapter extends ArrayAdapter<Room> {
     public final static String EXTRA_ROOM_OBJECTID = "EXTRA_ROOM_OBJECTID";
+    final private Navigator navigator;
 
-    public DrawerAdapter(Context context, RoomListPresenter roomListPresenter, List<Room> rooms) {
+    public DrawerAdapter(Context context, Navigator navigator, List<Room> rooms) {
         super(context, 0, rooms);
+        this.navigator = navigator;
     }
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).
-                    inflate(R.layout.item_room, parent, false);
+                    inflate(android.R.layout.simple_list_item_activated_1, parent, false);
             final ViewHolder holder = new ViewHolder();
-            holder.ivRoom = (ImageView)convertView.findViewById(R.id.ivRoom);
-            holder.tvRoom = (TextView)convertView.findViewById(R.id.tvRoom);
+            holder.tvRoom = (TextView)convertView.findViewById(android.R.id.text1);
             convertView.setTag(holder);
         }
-        Room room = getItem(position);
+        final Room room = getItem(position);
         final ViewHolder holder = (ViewHolder)convertView.getTag();
 
-        /*Picasso.with(getContext()).load(getProfileUrl(message.getUserId())).into(holder.ivRoom);*/
         holder.tvRoom.setText(room.getName());
 
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                /*Intent intent = new Intent(getContext(), ChatActivity.class);
-                intent.putExtra(MainActivity.EXTRA_ROOM_OBJECTID, getItem(position).getObjectId());
-                getContext().startActivity(intent);*/
+                String roomId = room.getObjectId();
+                navigator.navigateToRoom(roomId);
             }
         });
         return convertView;
     }
 
     final class ViewHolder {
-        public ImageView ivRoom;
         public TextView tvRoom;
     }
 

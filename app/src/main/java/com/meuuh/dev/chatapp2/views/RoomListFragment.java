@@ -51,20 +51,21 @@ implements IRoomListView, View.OnClickListener {
         btCreateRoom = (Button) rootView.findViewById(R.id.btCreateRoom);
         btCreateRoom.setOnClickListener(this);
 
-        mRoomListPresenter = RoomListPresenter.getInstance(this);
+        mRoomListPresenter = RoomListPresenter.getInstance();
+        mRoomListPresenter.setRoomListView(this);
 
         mRooms = new ArrayList<Room>();
         mAdapter = new RoomListAdapter(getActivity(), mRoomListPresenter, mRooms);
         lvRoomList.setAdapter(mAdapter);
-        refreshRooms();
+        mRoomListPresenter.refreshRooms();
         return rootView;
     }
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        ((ChatActivity) activity).onSectionAttached(
-                getArguments().getInt(ARG_SECTION_NUMBER));
+        String roomName = "Home";
+        ((ChatActivity) activity).onSectionAttached(roomName);
 
     }
 
@@ -94,18 +95,11 @@ implements IRoomListView, View.OnClickListener {
     }
 
     @Override
-    public void refreshRooms() {
-        mRoomListPresenter.refreshRoom(new RoomListPresenter.RoomListPresenterCallback() {
-            @Override
-            public void done(List<Room> rooms) {
-                //refresh adapter
-               // mNavigationDrawerFragment.updateDrawer(rooms);
-                mRooms.clear();
-                mRooms.addAll(rooms);
-                mAdapter.notifyDataSetChanged();
-                lvRoomList.invalidate();
-            }
-        });
+    public void refreshRooms(List<Room> rooms) {
+        mRooms.clear();
+        mRooms.addAll(rooms);
+        mAdapter.notifyDataSetChanged();
+        lvRoomList.invalidate();
     }
 
     // Show Dialog for create room

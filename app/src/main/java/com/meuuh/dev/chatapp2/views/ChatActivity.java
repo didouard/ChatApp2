@@ -2,32 +2,25 @@ package com.meuuh.dev.chatapp2.views;
 
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
-import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.support.v4.widget.DrawerLayout;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ListView;
 
 import com.meuuh.dev.chatapp2.R;
-import com.meuuh.dev.chatapp2.models.com.parse.Message;
-import com.meuuh.dev.chatapp2.presenters.ChatPresenter;
-import com.meuuh.dev.chatapp2.presenters.RoomPresenter;
+import com.meuuh.dev.chatapp2.navigation.DaggerNavigatorComponent;
+import com.meuuh.dev.chatapp2.navigation.Navigator;
+import com.meuuh.dev.chatapp2.navigation.NavigatorComponent;
+import com.meuuh.dev.chatapp2.navigation.NavigatorModule;
 
-import java.util.ArrayList;
+import javax.inject.Inject;
 
 
-public class ChatActivity extends ActionBarActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks
-         {
-
+public class ChatActivity extends ActionBarActivity {
     private NavigationDrawerFragment mNavigationDrawerFragment;
     private CharSequence mTitle;
-
-             private ChatPresenter chatPresenter;
+    @Inject
+    Navigator navigator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,38 +36,17 @@ public class ChatActivity extends ActionBarActivity
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
 
-        chatPresenter = new ChatPresenter();
-        chatPresenter.setActivity(this);
+        NavigatorComponent navigatorComponent = DaggerNavigatorComponent.builder()
+                .navigatorModule(new NavigatorModule())
+                .build();
+
+        navigator = navigatorComponent.provideNavigator();
+        navigator.setChatActivity(this);
+        navigator.navigateToRoom(null);
     }
 
-    @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        if (position == 0) {
-            fragmentManager.beginTransaction()
-                    .replace(R.id.container, RoomListFragment.newInstance())
-                    .commit();
-        } else {
-            String roomId = chatPresenter.getRoomId(position + 1);
-            fragmentManager.beginTransaction()
-                    .replace(R.id.container, RoomFragment.newInstance(roomId))
-                    .commit();
-        }
-    }
-
-    public void onSectionAttached(int number) {
-        switch (number) {
-            case 1:
-                mTitle = getString(R.string.title_section1);
-                break;
-            case 2:
-                mTitle = getString(R.string.title_section2);
-                break;
-            case 3:
-                mTitle = getString(R.string.title_section3);
-                break;
-        }
+    public void onSectionAttached(String roomName) {
+        mTitle = roomName;
     }
 
     public void restoreActionBar() {

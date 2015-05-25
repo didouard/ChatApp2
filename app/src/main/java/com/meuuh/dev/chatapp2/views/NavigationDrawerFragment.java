@@ -24,17 +24,24 @@ import android.widget.Toast;
 
 import com.meuuh.dev.chatapp2.R;
 import com.meuuh.dev.chatapp2.models.com.parse.Room;
+import com.meuuh.dev.chatapp2.navigation.DaggerNavigatorComponent;
+import com.meuuh.dev.chatapp2.navigation.Navigator;
+import com.meuuh.dev.chatapp2.navigation.NavigatorComponent;
+import com.meuuh.dev.chatapp2.navigation.NavigatorModule;
 import com.meuuh.dev.chatapp2.presenters.RoomListPresenter;
+import com.meuuh.dev.chatapp2.views.adapters.DrawerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
  * design guidelines</a> for a complete explanation of the behaviors implemented here.
  */
-public class NavigationDrawerFragment extends Fragment {
+public class NavigationDrawerFragment extends Fragment implements INavigationDrawerView {
 
     /**
      * Remember the position of the selected item.
@@ -48,11 +55,6 @@ public class NavigationDrawerFragment extends Fragment {
     private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
 
     /**
-     * A pointer to the current callbacks instance (the Activity).
-     */
-    private NavigationDrawerCallbacks mCallbacks;
-
-    /**
      * Helper component that ties the action bar to the navigation drawer.
      */
     private ActionBarDrawerToggle mDrawerToggle;
@@ -64,6 +66,13 @@ public class NavigationDrawerFragment extends Fragment {
     private int mCurrentSelectedPosition = 0;
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
+
+    private DrawerAdapter drawerAdapter;
+    private List<Room> rooms;
+    private RoomListPresenter roomListPresenter;
+
+    @Inject
+    Navigator navigator;
 
     public NavigationDrawerFragment() {
     }
@@ -82,8 +91,6 @@ public class NavigationDrawerFragment extends Fragment {
             mFromSavedInstanceState = true;
         }
 
-        // Select either the default item (0) or the last selected item.
-        selectItem(mCurrentSelectedPosition);
     }
 
     @Override
@@ -98,18 +105,32 @@ public class NavigationDrawerFragment extends Fragment {
                              Bundle savedInstanceState) {
         mDrawerListView = (ListView) inflater.inflate(
                 R.layout.fragment_navigation_drawer, container, false);
-        mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        /*mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selectItem(position);
+                getIte
             }
-        });
+        });*/
+
+        NavigatorComponent navigatorComponent = DaggerNavigatorComponent.builder()
+                .navigatorModule(new NavigatorModule())
+                .build();
+
+        navigator = navigatorComponent.provideNavigator();
+
+        rooms = new ArrayList<Room>();
+        drawerAdapter = new DrawerAdapter(getActivity(), navigator, rooms);
+        mDrawerListView.setAdapter(drawerAdapter);
+
+        roomListPresenter = RoomListPresenter.getInstance();
+        roomListPresenter.setNavigationDrawerView(this);
+        roomListPresenter.refreshRooms();
 
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
         return mDrawerListView;
     }
 
-    public void updateDrawer(List<Room> rooms) {
+    /*public void updateDrawer(List<Room> rooms) {
         final List<String> rooms_list = new ArrayList<String>();
         rooms_list.add("Home : Room list");
         for (Room room : rooms) {
@@ -120,7 +141,7 @@ public class NavigationDrawerFragment extends Fragment {
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1,
                 rooms_list));
-    }
+    }*/
 
     public boolean isDrawerOpen() {
         return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mFragmentContainerView);
@@ -170,8 +191,8 @@ public class NavigationDrawerFragment extends Fragment {
                     return;
                 }
 
-                 RoomListPresenter roomListPresenter = RoomListPresenter.getInstance(null);
-                if (roomListPresenter != null) updateDrawer(roomListPresenter.getRooms());
+                /* RoomListPresenter roomListPresenter = RoomListPresenter.getInstance();
+                if (roomListPresenter != null) updateDrawer(roomListPresenter.getRooms());*/
 
                 if (!mUserLearnedDrawer) {
                     // The user manually opened the drawer; store this flag to prevent auto-showing
@@ -201,35 +222,6 @@ public class NavigationDrawerFragment extends Fragment {
         });
 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
-    }
-
-    private void selectItem(int position) {
-        mCurrentSelectedPosition = position;
-        if (mDrawerListView != null) {
-            mDrawerListView.setItemChecked(position, true);
-        }
-        if (mDrawerLayout != null) {
-            mDrawerLayout.closeDrawer(mFragmentContainerView);
-        }
-        if (mCallbacks != null) {
-            mCallbacks.onNavigationDrawerItemSelected(position);
-        }
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mCallbacks = (NavigationDrawerCallbacks) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Activity must implement NavigationDrawerCallbacks.");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mCallbacks = null;
     }
 
     @Override
@@ -285,13 +277,11 @@ public class NavigationDrawerFragment extends Fragment {
         return ((ActionBarActivity) getActivity()).getSupportActionBar();
     }
 
-    /**
-     * Callbacks interface that all activities using this fragment must implement.
-     */
-    public static interface NavigationDrawerCallbacks {
-        /**
-         * Called when an item in the navigation drawer is selected.
-         */
-        void onNavigationDrawerItemSelected(int position);
+    @Override
+    public void refreshRooms(List<Room> rooms) {
+        this.rooms.clear();
+        this.rooms.addAll(rooms);
+        drawerAdapter.notifyDataSetChanged();
+        mDrawerListView.invalidate();
     }
 }

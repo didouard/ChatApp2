@@ -5,6 +5,8 @@ package com.meuuh.dev.chatapp2.views;
  */
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -30,6 +32,8 @@ public class RoomFragment extends Fragment
 implements IRoomView, View.OnClickListener {
 
     private static final String ARG_ROOM_ID = "section_number";
+    private static final String INTENT_EXTRA_PARAM_ROOM_ID
+            = "om.meuuh.dev.chatapp2.INTENT_ROOM_LIST_ROOM_ID";
 
     private Button btSend;
     RoomPresenter mRoomPresenter;
@@ -44,10 +48,25 @@ implements IRoomView, View.OnClickListener {
     public RoomFragment() {
     }
 
+    public static Intent getCallingIntent(Context context, String roomId) {
+        Intent callingIntent = new Intent(context, IRoomView.class);
+        callingIntent.putExtra(INTENT_EXTRA_PARAM_ROOM_ID, roomId);
+
+        return callingIntent;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_room, container, false);
+
+
 
         btSend = (Button) rootView.findViewById(R.id.btSend);
         lvChat = (ListView) rootView.findViewById(R.id.lvChat);
@@ -71,8 +90,8 @@ implements IRoomView, View.OnClickListener {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        ((ChatActivity) activity).onSectionAttached(
-                getArguments().getInt(ARG_ROOM_ID));
+        String roomName = "roomName";
+        ((ChatActivity) activity).onSectionAttached(roomName);
     }
 
     public static RoomFragment newInstance(String roomId) {
